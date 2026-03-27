@@ -252,21 +252,6 @@ Active context:
 
 Use to understand why Claude might be missing context, or to check how close you are to the context limit.
 
-### `/todo` — Task Tracking
-Claude maintains an internal todo list for multi-step tasks:
-```
-/todo
-
-Current tasks:
-[✓] Read existing auth implementation
-[✓] Identify rate limiting insertion point
-[ ] Add rate limiting middleware
-[ ] Write tests
-[ ] Update API documentation
-```
-
-Particularly useful for long tasks. If Claude seems to have forgotten a step, `/todo` shows the state of its internal plan.
-
 ### `/review` — Ask Claude to Self-Audit
 After Claude makes changes, ask it to review its own work:
 ```
@@ -320,7 +305,6 @@ Shows a combined git diff of every change Claude has made during the session. Yo
 ### Task & Workflow
 | Command | What it does |
 |---|---|
-| `/todo` | Shows current task list |
 | `/review` | Claude self-audits its changes |
 
 ### Recovery & Undo
@@ -339,8 +323,7 @@ Shows a combined git diff of every change Claude has made during the session. Yo
 ### Git Shortcuts
 | Command | What it does |
 |---|---|
-| `/commit` | Stage and commit current changes |
-| `/pr` | Create a pull request |
+| `/pr-comments [PR]` | Fetch and display comments from a GitHub pull request. Automatically detects the PR for the current branch, or pass a PR URL or number. Requires the `gh` CLI |
 | `/diff` | Show git diff of all session changes |
 
 ---
@@ -473,7 +456,6 @@ logging to every function. Then wait for my approval.
 
 **Slash command workout — run each one:**
 ```
-/todo
 /diff
 /memory
 /insights
@@ -498,7 +480,7 @@ logging to every function. Then wait for my approval.
 | Prompt structure | Context + Task + Constraints + Output format |
 | Key patterns | Explain first, follow existing, scope limiter, step by step |
 | Reading output | Watch tool use indicators and always read diffs |
-| Daily slash commands | `/clear`, `/compact`, `/memory`, `/todo`, `/review`, `/diff`, `/insights` |
+| Daily slash commands | `/clear`, `/compact`, `/memory`, `/review`, `/diff`, `/insights` |
 | When things go wrong | Escape, Escape×2, /rewind, redirect with specific language |
 | Internal mechanics | Everything is context; tools run sequentially in a loop |
 
