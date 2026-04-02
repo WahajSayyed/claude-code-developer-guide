@@ -30,9 +30,10 @@ Each chapter builds on the last. Read sequentially for the full learning experie
 | Chapter | Topic | CCA Domains |
 |---|---|---|
 | [Chapter 4](./chapter-04-claude-md-persistent-context.md) | CLAUDE.md — Persistent Context & Project Memory | Domain 3, 5 |
-| Chapter 5 *(coming soon)* | File Editing & Multi-File Tasks | Domain 1, 4 |
-| Chapter 6 *(coming soon)* | Debugging & Bug Fixing | Domain 1 |
-| Chapter 7 *(coming soon)* | Git Integration | Domain 3 |
+| [Chapter 5](./chapter-05-file-editing-and-multi-file-tasks.md) | File Editing & Multi-File Tasks | Domain 1, 4 |
+| [Chapter 6](./chapter-06-debugging-and-bug-fixing.md) | Debugging & Bug Fixing | Domain 1, 4 |
+| [Chapter 7](./chapter-07-git-integration.md) | Git Integration | Domain 3 |
+| Chapter 8 *(coming soon)* | Context Window Management | Domain 5 |
 
 ### Part 3 — Advanced Usage
 
@@ -100,12 +101,20 @@ claude --max-tokens 4000 "task" # Limit token usage
 ```
 /memory        Show active context and token usage
 /add-dir       Add directory to context
-/todo          Show Claude's current task list
+/tasks         List and manage background tasks
+```
+
+### File & Memory Shortcuts
+```
+@filename      Mention a file to load it into context
+               e.g: How does auth work? @src/auth/login.py
+
+# instruction  Memory mode — update CLAUDE.md on the fly
+               e.g: # Never use print(), use the logger instead
 ```
 
 ### Slash Commands — Review & Quality
 ```
-/review        Claude self-audits its changes
 /diff          Show all git changes this session
 /insights      Session stats (tokens, tools, cost)
 /status        Session health check
@@ -119,8 +128,8 @@ Escape × 2     Quick undo of last action
 
 ### Slash Commands — Git
 ```
-/commit        Stage and commit changes
-/pr            Create pull request
+/pr-comments   Fetch GitHub PR comments (requires gh CLI)
+/security-review  Analyse current branch for vulnerabilities
 /diff          Show git diff
 ```
 
@@ -139,7 +148,11 @@ Escape × 2     Quick undo of last action
 | Concept | One-liner |
 |---|---|
 | Agent loop | Plan → Tool → Observe → Repeat |
-| CLAUDE.md hierarchy | Global → Project → Subdirectory (most specific wins) |
+| CLAUDE.md hierarchy | Global → Project → Local → Subdirectory (most specific wins) |
+| CLAUDE.local.md | Personal, gitignored — team never sees it |
+| `@` file mention | Load a specific file into context: `How does auth work? @src/auth/login.py` |
+| `#` memory mode | Update CLAUDE.md on the fly: `# Always use async for DB calls` |
+| `/init` command | Auto-generates CLAUDE.md by analysing your codebase — run first in every new project |
 | Programmatic vs prompt | Hard constraints must be code, not instructions |
 | Context window | Everything accumulates; use `/compact` on long sessions |
 | Plan mode | Claude shows plan and waits for approval before acting |

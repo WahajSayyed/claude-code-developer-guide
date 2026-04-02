@@ -122,6 +122,60 @@ claude> What files are in this project and what do they do?
 
 Claude will read your files and respond. Watch closely — you'll see it use the **Read** tool in real time, shown in the terminal output before its answer.
 
+### The `/init` Command — Your Most Important First Step
+
+When starting Claude Code in **any new project for the first time**, run this immediately:
+
+```
+/init
+```
+
+This is one of the most valuable commands in Claude Code and is commonly overlooked by beginners. Here's what it does:
+
+Claude analyzes your **entire codebase** and builds understanding of:
+- The project's purpose and overall architecture
+- Important commands (build, test, run, deploy)
+- Critical files and their roles
+- Coding patterns and conventions already in use
+
+After analysis, Claude **automatically creates a `CLAUDE.md` file** for you — a fully populated project memory file written from what it observed in your code. You'll be prompted to approve file writes:
+
+```
+Claude wants to create: CLAUDE.md
+  [Enter] to approve   [Shift+Tab] to approve all
+```
+
+- Press `Enter` to approve each write individually
+- Press `Shift+Tab` to let Claude write files freely for the rest of the session (faster for initial setup)
+
+> 💡 **This is the right order:** `/init` first → Claude generates CLAUDE.md → you refine it → future sessions start context-loaded. Without `/init`, you're writing CLAUDE.md from scratch by hand.
+
+**What a `/init`-generated CLAUDE.md looks like:**
+```markdown
+# Project: my-fastapi-app
+
+## Overview
+FastAPI REST API with PostgreSQL database for user management.
+
+## Key Commands
+- `uvicorn main:app --reload` — start dev server
+- `pytest tests/` — run tests
+- `alembic upgrade head` — run migrations
+
+## Architecture
+- `main.py` — application entry point
+- `routers/` — API route handlers
+- `models/` — SQLAlchemy database models
+- `schemas/` — Pydantic request/response schemas
+
+## Patterns
+- Dependency injection via FastAPI `Depends()`
+- Repository pattern for database access
+- Async route handlers throughout
+```
+
+Claude generated all of this by reading your code — you didn't write a word of it. You then refine and extend it (covered in Chapter 4).
+
 ---
 
 ## 5. The Terminal Interface — A Full Tour
@@ -167,49 +221,70 @@ When Claude acts, it shows you what it's doing:
 | Command | What it does |
 |---|---|
 | `/help` | Lists all slash commands with descriptions |
-| `/exit` | Ends the current session cleanly |
-| `/clear` | Clears conversation history and starts fresh (keeps files) |
-| `/compact` | Summarizes conversation to free up context window space |
-| `/reset` | Full reset — clears history AND any in-memory context |
+| `/init` | Analyses codebase and generates CLAUDE.md — run first in every new project |
+| `/exit` | Ends the current session cleanly. Alias: `/quit` |
+| `/clear` | Clears conversation history and starts fresh (keeps files). Aliases: `/reset`, `/new` |
+| `/compact [instructions]` | Summarises conversation to free up context window space |
+| `/branch [name]` | Creates a branch/fork of the conversation at this point. Alias: `/fork` |
 
 ### Model & Configuration
 | Command | What it does |
 |---|---|
-| `/model` | Shows current model being used |
-| `/model claude-opus-4-5` | Switches to a specific model mid-session |
-| `/config` | Opens configuration settings |
+| `/model [model]` | Shows or changes the current model. Use arrow keys to adjust effort level |
+| `/effort [low\|medium\|high\|max\|auto]` | Sets model effort level — affects reasoning depth |
+| `/config` | Opens configuration settings. Alias: `/settings` |
+| `/fast [on\|off]` | Toggles fast mode on or off |
 
 ### Memory & Context
 | Command | What it does |
 |---|---|
-| `/memory` | Shows what Claude currently has in its active memory |
-| `/add-dir <path>` | Adds an additional directory to Claude's context |
+| `/memory` | Edit CLAUDE.md files, enable/disable auto-memory, view auto-memory entries |
+| `/add-dir <path>` | Adds an additional directory to Claude's context for the session |
+| `/context` | Visualises current context usage as a coloured grid with optimisation suggestions |
 
-### Task & Workflow
+### Workflow & Tasks
 | Command | What it does |
 |---|---|
-| `/todo` | Shows the current task list Claude is tracking |
-| `/review` | Asks Claude to review recent changes it made |
+| `/plan [description]` | Enters plan mode — Claude shows its plan and waits for approval before acting |
+| `/agents` | Manages agent configurations |
+| `/tasks` | Lists and manages background tasks |
+| `/btw <question>` | Asks a quick side question without adding it to the main conversation |
 
 ### Recovery & Undo
 | Command | What it does |
 |---|---|
-| `/rewind` | Reverts to a previous checkpoint |
-| `Escape × 2` | Quick undo of the last change |
+| `/rewind` | Rewinds conversation and/or code to a previous checkpoint. Alias: `/checkpoint` |
+| `Escape × 2` | Quick undo of the last action |
+
+### Review & Quality
+| Command | What it does |
+|---|---|
+| `/diff` | Opens interactive diff viewer showing uncommitted changes and per-turn diffs |
+| `/security-review` | Analyses pending changes on current branch for security vulnerabilities |
+| `/pr-comments [PR]` | Fetches and displays comments from a GitHub pull request (requires `gh` CLI) |
+
+### Analytics & Cost
+| Command | What it does |
+|---|---|
+| `/cost` | Shows token usage statistics for the session |
+| `/insights` | Generates a report analysing your Claude Code sessions and interaction patterns |
+| `/stats` | Visualises daily usage, session history, streaks, and model preferences |
+| `/usage` | Shows plan usage limits and rate limit status |
 
 ### Feedback & Debug
 | Command | What it does |
 |---|---|
-| `/bug` | Opens a bug report to send to Anthropic |
-| `/insights` | Shows stats on your session (tokens used, tools called, etc.) |
-| `/status` | Shows current session status and health |
+| `/feedback [report]` | Submits feedback or bug report to Anthropic. Alias: `/bug` |
+| `/doctor` | Diagnoses and verifies your Claude Code installation and settings |
+| `/status` | Opens the Settings Status tab — version, model, account, connectivity |
 
-### Git Shortcuts
+### Session Utilities
 | Command | What it does |
 |---|---|
-| `/commit` | Asks Claude to stage and commit current changes |
-| `/pr` | Asks Claude to create a pull request |
-| `/diff` | Shows git diff of current changes |
+| `/export [filename]` | Exports the current conversation as plain text |
+| `/rename [name]` | Renames the current session |
+| `/resume [session]` | Resumes a previous conversation by ID or name. Alias: `/continue` |
+| `/copy [N]` | Copies the last assistant response to clipboard |
 
 ---
 
@@ -379,10 +454,15 @@ def divide(a, b):
     return a / b  # Bug: no zero division check
 ```
 
-**Step 2:** Start Claude Code:
+**Step 2:** Start Claude Code and run `/init`:
 ```bash
 claude
 ```
+Once inside the session:
+```
+/init
+```
+Watch Claude read your files and generate a CLAUDE.md. Press `Shift+Tab` to approve all writes at once.
 
 **Step 3:** Try each of these prompts and observe the tool usage:
 ```
@@ -395,8 +475,9 @@ Add a test file for these functions
 **Step 4:** Run the slash commands:
 ```
 /diff
-/todo
+/cost
 /insights
+/context
 ```
 
 **Step 5:** Practice interrupting:
@@ -417,7 +498,7 @@ Rewrite the entire calculator to use a class-based approach
 | Starting | `cd your-project && claude` |
 | Interface | Tool use is visible, diffs shown before applying |
 | Escape key | Your interrupt and undo safety net |
-| Slash commands | `/help`, `/clear`, `/compact`, `/rewind`, `/insights` — memorize these |
+| Key commands | `/help`, `/clear`, `/compact`, `/rewind`, `/cost`, `/context`, `/plan` |
 | Bootstrap | Claude scans dir + git + CLAUDE.md before you type anything |
 | Config | Lives in `~/.claude/config.json` |
 | `.claudeignore` | Speeds up large projects by skipping irrelevant dirs |

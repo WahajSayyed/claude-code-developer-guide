@@ -16,6 +16,14 @@ You say:
 
 Claude Code responds to the same directness. Vague, polite, over-qualified prompts produce vague results. Direct, specific, task-framed prompts produce precise action.
 
+### Context Management Is Your Responsibility
+
+When working with Claude on coding projects, context management is crucial. Your project might have dozens or hundreds of files, but Claude only needs the **right** information to help you effectively.
+
+> ⚠️ **Too much irrelevant context actually decreases Claude's performance.** Loading every file in a large project into context is worse than loading only the relevant ones.
+
+Your job as the developer is to guide Claude toward the files and information it needs for each specific task. The tools for doing this — `@` file mentions, CLAUDE.md references, and `/add-dir` — are covered in this chapter and Chapter 4. Learning to use them well is one of the highest-leverage skills in Claude Code.
+
 ---
 
 ## 2. The Four Interaction Modes
@@ -173,7 +181,87 @@ Don't write any code yet.
 
 ---
 
-## 5. Reading Claude's Output — What to Watch For
+## 5. File Mentions with `@` — Pinpoint Context
+
+One of the most powerful and underused features in Claude Code. Instead of letting Claude search for relevant files, you tell it exactly which files to look at using the `@` symbol.
+
+### Basic Usage
+```
+How does the auth system work? @src/auth/login.py
+```
+
+Claude immediately reads that exact file and includes it in context before answering. No searching, no guessing.
+
+### Fuzzy File Selection
+You don't need the full path. Type `@auth` and Claude shows you a list of matching files to choose from:
+```
+How does the auth system work? @auth
+
+  Matching files:
+  > src/auth/login.py
+    src/auth/tokens.py
+    src/auth/middleware.py
+    tests/test_auth.py
+
+  [Select with arrow keys, Enter to confirm]
+```
+
+This is faster than typing full paths and helps when you know roughly which module is relevant but not the exact file.
+
+### Multiple Files in One Prompt
+```
+Why is there a mismatch between @src/schemas/user.py
+and @src/models/user.py?
+```
+
+Both files are loaded into context and Claude can directly compare them.
+
+### When to Use `@` vs Letting Claude Search
+
+| Situation | Best Approach |
+|---|---|
+| You know exactly which file is relevant | `@` mention — faster and more token-efficient |
+| You're not sure which file has the logic | Let Claude search — it uses grep internally |
+| Comparing two specific files | `@` both explicitly |
+| Asking about a feature that spans many files | Let Claude explore, then `@` specific ones for follow-up |
+
+> 💡 **Context efficiency tip:** Every file you `@` mention is fully loaded into the context window. For large files, be selective — load only what's needed for the current question.
+
+---
+
+## 6. The `#` Command — Memory Mode
+
+The `#` command puts Claude into **memory mode**, which lets you update your `CLAUDE.md` file directly from the chat prompt without manually editing the file.
+
+### Usage
+```
+# Use comments sparingly. Only comment complex code.
+```
+
+Claude takes this instruction and **intelligently merges** it into your `CLAUDE.md` file — it doesn't just append, it understands where the instruction belongs and integrates it properly.
+
+### More Examples
+```
+# Always use async/await for database calls
+# Never use print() — use the logger from src/core/logging.py
+# Run pytest after every change
+```
+
+### Why This Matters
+Without `#` mode, you'd need to:
+1. Stop your session
+2. Open CLAUDE.md in an editor
+3. Find the right section
+4. Add your instruction
+5. Return to Claude
+
+With `#` mode, you update your project memory **without breaking your flow**. As you notice things during a session ("Claude keeps adding verbose comments"), you fix them instantly.
+
+> 🔑 **Best practice:** When you find yourself correcting Claude for the same thing twice, use `#` to encode that correction into CLAUDE.md so it never happens again.
+
+---
+
+## 7. Reading Claude's Output — What to Watch For
 
 ### Tool Use Indicators
 ```
@@ -252,12 +340,15 @@ Active context:
 
 Use to understand why Claude might be missing context, or to check how close you are to the context limit.
 
-### `/review` — Ask Claude to Self-Audit
-After Claude makes changes, ask it to review its own work:
+### `/tasks` — Background Task Tracking
+Lists and manages background tasks Claude is running or has queued:
 ```
-/review
+/tasks
 ```
-Claude re-reads everything it changed in the session and gives you a critical assessment. It often catches things it missed the first time.
+Use this to monitor long-running operations and check what Claude has in progress.
+
+### `/diff` — See All Changes This Session
+Shows an interactive diff viewer of every uncommitted change Claude has made — per-turn and combined. Use left/right arrows to switch views, up/down to browse files.
 
 ### `/insights` — Session Analytics
 ```
@@ -273,62 +364,83 @@ Session statistics:
 - Estimated cost: $0.18
 ```
 
-### `/diff` — See All Changes This Session
-Shows a combined git diff of every change Claude has made during the session. Your master view of what's changed before you commit.
+
 
 ---
 
-## 7. Full Slash Command Reference
+## 8. Full Slash Command Reference
 
 ### Session Management
 | Command | What it does |
 |---|---|
-| `/help` | Lists all slash commands with descriptions |
-| `/exit` | Ends the current session cleanly |
-| `/clear` | Clears conversation history, keeps files |
-| `/compact` | Summarizes conversation to free context space |
-| `/reset` | Full reset — clears history AND in-memory context |
+| `/help` | Lists all slash commands |
+| `/exit` | Ends session. Alias: `/quit` |
+| `/clear` | Clears history, keeps files. Aliases: `/reset`, `/new` |
+| `/compact [instructions]` | Summarises conversation to free context space |
+| `/branch [name]` | Forks the conversation at this point. Alias: `/fork` |
+| `/resume [session]` | Resumes a previous session. Alias: `/continue` |
 
 ### Model & Configuration
 | Command | What it does |
 |---|---|
-| `/model` | Shows current model |
-| `/model <name>` | Switches model mid-session |
-| `/config` | Opens configuration settings |
+| `/model [model]` | Shows or switches current model |
+| `/effort [low|medium|high|max|auto]` | Sets model reasoning depth |
+| `/config` | Opens configuration settings. Alias: `/settings` |
+| `/fast [on|off]` | Toggles fast mode |
 
 ### Memory & Context
 | Command | What it does |
 |---|---|
-| `/memory` | Shows active memory and token usage |
-| `/add-dir <path>` | Adds an additional directory to context |
+| `/memory` | Edit CLAUDE.md files and manage auto-memory |
+| `/add-dir <path>` | Adds a directory to current session context |
+| `/context` | Visualises context usage with optimisation suggestions |
 
-### Task & Workflow
+### Workflow & Planning
 | Command | What it does |
 |---|---|
-| `/review` | Claude self-audits its changes |
+| `/plan [description]` | Enters plan mode — shows plan, waits for approval |
+| `/agents` | Manages agent configurations |
+| `/tasks` | Lists and manages background tasks |
+| `/btw <question>` | Asks a side question without affecting main conversation |
 
 ### Recovery & Undo
 | Command | What it does |
 |---|---|
-| `/rewind` | Reverts to a previous checkpoint |
-| `Escape × 2` | Quick undo of the last change |
+| `/rewind` | Reverts to a previous checkpoint. Alias: `/checkpoint` |
+| `Escape × 2` | Quick undo of last action |
+
+### Review & Quality
+| Command | What it does |
+|---|---|
+| `/diff` | Interactive diff viewer — uncommitted changes and per-turn diffs |
+| `/security-review` | Analyses current branch for security vulnerabilities |
+| `/pr-comments [PR]` | Fetches GitHub PR comments (requires `gh` CLI) |
+
+### Analytics & Cost
+| Command | What it does |
+|---|---|
+| `/cost` | Shows token usage for the session |
+| `/insights` | Generates a report on session patterns and history |
+| `/stats` | Visualises daily usage, streaks, model preferences |
+| `/usage` | Shows plan usage limits and rate limit status |
 
 ### Feedback & Debug
 | Command | What it does |
 |---|---|
-| `/bug` | Opens a bug report to Anthropic |
-| `/insights` | Session stats (tokens, tools, cost) |
-| `/status` | Current session status and health |
+| `/feedback [report]` | Submits feedback or bug report. Alias: `/bug` |
+| `/doctor` | Diagnoses your Claude Code installation |
+| `/status` | Opens Settings Status tab — version, model, account |
 
-### Git Shortcuts
+### Session Utilities
 | Command | What it does |
 |---|---|
-| `/pr-comments [PR]` | Fetch and display comments from a GitHub pull request. Automatically detects the PR for the current branch, or pass a PR URL or number. Requires the `gh` CLI |
-| `/diff` | Show git diff of all session changes |
+| `/export [filename]` | Exports the conversation as plain text |
+| `/rename [name]` | Renames the current session |
+| `/copy [N]` | Copies last response to clipboard |
 
 ---
 
-## 8. Handling Claude When It Goes Wrong
+## 9. Handling Claude When It Goes Wrong
 
 ### When it misunderstands:
 ```
@@ -365,7 +477,7 @@ Push back directly with specific reasoning. Claude responds well to being challe
 
 ---
 
-## 9. Multi-turn Conversation — Keeping Context Sharp
+## 10. Multi-turn Conversation — Keeping Context Sharp
 
 ### Re-anchor When Switching Topics
 ```
@@ -389,7 +501,7 @@ This forces Claude to plan explicitly. You can catch wrong assumptions before an
 
 ---
 
-## 10. Internal Mechanics — How Claude Processes Your Prompt
+## 11. Internal Mechanics — How Claude Processes Your Prompt
 
 ```
 Your prompt arrives
@@ -430,7 +542,7 @@ This is why:
 
 ---
 
-## 11. Practical Exercise — The Full Interaction Workout
+## 12. Practical Exercise — The Full Interaction Workout
 
 Use the calculator project from Chapter 2 or any project you have.
 
@@ -454,13 +566,26 @@ Before changing anything, explain what changes you'd make to add
 logging to every function. Then wait for my approval.
 ```
 
+**`@` file mention practice:**
+```
+How does the divide function handle errors? @calculator.py
+Compare the structure of @calculator.py with @test_calculator.py
+```
+
+**`#` memory mode practice:**
+```
+# Always add type hints to new functions
+# Never add inline comments unless the logic is non-obvious
+```
+
 **Slash command workout — run each one:**
 ```
 /diff
-/memory
+/cost
+/context
 /insights
-/compact
-/review
+/stats
+/security-review
 ```
 
 **Recovery practice:**
@@ -476,11 +601,14 @@ logging to every function. Then wait for my approval.
 | Topic | Key Takeaway |
 |---|---|
 | Mindset | Direct a developer, don't prompt an AI |
+| Context management | Too much irrelevant context hurts performance — guide Claude to the right files |
 | Interaction modes | Question / Task / Iterative / One-shot |
 | Prompt structure | Context + Task + Constraints + Output format |
 | Key patterns | Explain first, follow existing, scope limiter, step by step |
+| `@` file mentions | Pinpoint exactly which files Claude should read — faster and more token-efficient |
+| `#` memory mode | Update CLAUDE.md on the fly without breaking your session flow |
 | Reading output | Watch tool use indicators and always read diffs |
-| Daily slash commands | `/clear`, `/compact`, `/memory`, `/review`, `/diff`, `/insights` |
+| Daily slash commands | `/clear`, `/compact`, `/memory`, `/diff`, `/cost`, `/context`, `/plan` |
 | When things go wrong | Escape, Escape×2, /rewind, redirect with specific language |
 | Internal mechanics | Everything is context; tools run sequentially in a loop |
 
