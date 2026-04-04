@@ -41,7 +41,7 @@ Each chapter builds on the last. Read sequentially for the full learning experie
 |---|---|---|
 | [Chapter 8](./chapter-08-context-window-management.md) | Context Window Management | Domain 5 |
 | [Chapter 9](./chapter-09-mcp-model-context-protocol.md) | MCP — Model Context Protocol | Domain 2 |
-| Chapter 10 *(coming soon)* | Multi-Agent & Parallel Workflows | Domain 1, 2 |
+| [Chapter 10](./chapter-10-multi-agent-and-parallel-workflows.md) | Multi-Agent & Parallel Workflows | Domain 1, 2 |
 | Chapter 11 *(coming soon)* | Checkpoints & Session Recovery | Domain 3 |
 | Chapter 12 *(coming soon)* | CI/CD Automation | Domain 3 |
 
