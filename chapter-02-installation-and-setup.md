@@ -132,21 +132,38 @@ When starting Claude Code in **any new project for the first time**, run this im
 
 This is one of the most valuable commands in Claude Code and is commonly overlooked by beginners. Here's what it does:
 
-Claude analyzes your **entire codebase** and builds understanding of:
+Claude analyses your **entire codebase** and builds understanding of:
 - The project's purpose and overall architecture
 - Important commands (build, test, run, deploy)
 - Critical files and their roles
 - Coding patterns and conventions already in use
 
-After analysis, Claude **automatically creates a `CLAUDE.md` file** for you — a fully populated project memory file written from what it observed in your code. You'll be prompted to approve file writes:
+After analysis, Claude **automatically creates a `CLAUDE.md` file** for you — a fully populated project memory file written from what it observed in your code. You will be prompted to approve file writes:
 
 ```
 Claude wants to create: CLAUDE.md
-  [Enter] to approve   [Shift+Tab] to approve all
+  [Enter] to approve   [Shift+Tab] to switch to auto-accept mode
 ```
 
 - Press `Enter` to approve each write individually
-- Press `Shift+Tab` to let Claude write files freely for the rest of the session (faster for initial setup)
+- Press `Shift+Tab` to switch to auto-accept edits mode so Claude writes files freely for the rest of the session (faster for initial setup)
+
+### Enhanced `/init` with `CLAUDE_CODE_NEW_INIT=1`
+
+For a more thorough interactive setup, set the environment variable before running:
+
+```bash
+CLAUDE_CODE_NEW_INIT=1 claude
+/init
+```
+
+This enables a multi-phase flow where `/init`:
+1. Asks which artifacts to set up: CLAUDE.md files, skills, and hooks
+2. Explores your codebase with a subagent
+3. Fills gaps via follow-up questions
+4. Presents a reviewable proposal before writing any files
+
+If a CLAUDE.md already exists, `/init` suggests improvements rather than overwriting it.
 
 > 💡 **This is the right order:** `/init` first → Claude generates CLAUDE.md → you refine it → future sessions start context-loaded. Without `/init`, you're writing CLAUDE.md from scratch by hand.
 
@@ -208,8 +225,20 @@ When Claude acts, it shows you what it's doing:
 | `Shift + Enter` | New line without sending (multi-line input) |
 | `Escape` | Interrupt Claude mid-task |
 | `Escape × 2` | Undo last action / restore checkpoint |
+| `Shift + Tab` | Cycle through permission modes (Default → Auto-accept edits → Plan mode → Auto mode) |
 | `Ctrl + C` | Exit session |
 | `↑ / ↓` arrows | Scroll through prompt history |
+
+### Permission Modes — `Shift+Tab` Cycle
+
+`Shift+Tab` cycles through four permission modes — understanding each one is essential:
+
+| Mode | What it does |
+|---|---|
+| **Default** | Claude asks before file edits and shell commands — safest, most controlled |
+| **Auto-accept edits** | Claude edits files without asking, but still asks before running commands |
+| **Plan mode** | Read-only — Claude builds a complete plan first, you approve before any action |
+| **Auto mode** | Background classifier evaluates all actions; only risky ones are blocked |
 
 > 💡 **The Escape key is your safety net.** If Claude starts doing something unexpected mid-task, press Escape immediately. It stops the agent loop. You can then redirect, undo with `Escape × 2`, or start fresh with `/clear`.
 
@@ -298,22 +327,32 @@ claude "write a function that validates email addresses"
 claude --dir /path/to/project "explain this codebase"
 
 # Use a specific model
-claude --model claude-opus-4-5 "refactor my auth module"
+claude --model claude-sonnet-4-6 "refactor my auth module"
 
-# Run without any permission prompts (auto-approves edits)
-claude --yes "fix all lint errors"
+# Run without any permission prompts (auto mode)
+claude --permission-mode auto "fix all lint errors"
 
 # Print output to stdout (good for piping)
 claude --print "summarize main.py"
 
-# Run in non-interactive mode (for CI/CD pipelines)
-claude --no-interactive "run tests and report failures"
+# Non-interactive mode for CI/CD pipelines
+claude -p "run tests and report failures"
 
-# Limit how many tokens Claude can use
-claude --max-tokens 4000 "review this file"
+# Resume the most recent conversation
+claude --continue
+
+# Select from recent conversations to resume
+claude --resume
+
+# Fork a session — creates a new session from the current point
+# without affecting the original (safe parallel experimentation)
+claude --continue --fork-session
+
+# Append extra instructions to the system prompt (every invocation)
+claude --append-system-prompt "Always prefix responses with REVIEW:"
 ```
 
-> ⚠️ The `--yes` flag auto-approves all changes without asking. Use carefully — fine for low-risk tasks, risky for anything destructive.
+> ⚠️ **About `--fork-session`:** When you resume the same session in multiple terminals, both write to the same session file and messages get interleaved. Use `--fork-session` to give each terminal its own clean session branched from the same starting point. Session-scoped permissions are not restored on resume — you will need to re-approve those.
 
 ---
 
@@ -411,12 +450,37 @@ These two are different and commonly confused:
 | **Speed** | Instant | Shows a menu |
 | **Granularity** | Single tool call | Whole session snapshots |
 | **Use when** | Claude just did one wrong thing | Claude went down a wrong path for a while |
-| **Conversation** | Not affected | Can restore or keep |
+| **Restore options** | File change only | Chat only / Code only / Both / Summarise from here |
 
 **`Escape × 2`** = *"undo that one thing you just did"*
 **`/rewind`** = *"take me back to before this whole approach"*
 
-Checkpoints are created automatically after every prompt. Retained for 30 days in `~/.claude/checkpoints/`.
+> ⚠️ **Important:** Checkpoints only cover file changes Claude made — not external side effects like database writes, API calls, or deployments. They are also local to your session and separate from git.
+
+---
+
+## 12. Session Resume and Forking
+
+Claude Code saves every conversation locally. Sessions are tied to your current working directory.
+
+```bash
+claude --continue    # Resume the most recent session in this directory
+claude --resume      # Pick from a list of recent sessions
+```
+
+Use `/rename` to give sessions descriptive names like `"oauth-refactor"` so you can find them easily.
+
+### Forking a Session
+
+To branch off and try a different approach without affecting the original session:
+
+```bash
+claude --continue --fork-session
+```
+
+This creates a new session ID while preserving the full conversation history up to that point. The original session remains unchanged. Use this when you want to explore two different solutions from the same starting point — like git branches for your conversations.
+
+> ⚠️ **Note:** When you resume a session, your full conversation history is restored — but session-scoped permissions are **not**. You will need to re-approve those.
 
 ---
 
@@ -462,7 +526,7 @@ Once inside the session:
 ```
 /init
 ```
-Watch Claude read your files and generate a CLAUDE.md. Press `Shift+Tab` to approve all writes at once.
+Watch Claude read your files and generate a CLAUDE.md. At each file write prompt, press `Enter` to approve individually or `Shift+Tab` to switch to Auto-accept edits mode (so Claude writes files without asking for the rest of the session).
 
 **Step 3:** Try each of these prompts and observe the tool usage:
 ```
