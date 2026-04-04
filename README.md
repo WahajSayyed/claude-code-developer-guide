@@ -33,14 +33,14 @@ Each chapter builds on the last. Read sequentially for the full learning experie
 | [Chapter 5](./chapter-05-file-editing-and-multi-file-tasks.md) | File Editing & Multi-File Tasks | Domain 1, 4 |
 | [Chapter 6](./chapter-06-debugging-and-bug-fixing.md) | Debugging & Bug Fixing | Domain 1, 4 |
 | [Chapter 7](./chapter-07-git-integration.md) | Git Integration | Domain 3 |
-| Chapter 8 *(coming soon)* | Context Window Management | Domain 5 |
+| [Chapter 8](./chapter-08-context-window-management.md) | Context Window Management | Domain 5 |
 
 ### Part 3 — Advanced Usage
 
 | Chapter | Topic | CCA Domains |
 |---|---|---|
-| Chapter 8 *(coming soon)* | Context Window Management | Domain 5 |
-| Chapter 9 *(coming soon)* | MCP — Model Context Protocol | Domain 2 |
+| [Chapter 8](./chapter-08-context-window-management.md) | Context Window Management | Domain 5 |
+| [Chapter 9](./chapter-09-mcp-model-context-protocol.md) | MCP — Model Context Protocol | Domain 2 |
 | Chapter 10 *(coming soon)* | Multi-Agent & Parallel Workflows | Domain 1, 2 |
 | Chapter 11 *(coming soon)* | Checkpoints & Session Recovery | Domain 3 |
 | Chapter 12 *(coming soon)* | CI/CD Automation | Domain 3 |
