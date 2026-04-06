@@ -42,15 +42,15 @@ Each chapter builds on the last. Read sequentially for the full learning experie
 | [Chapter 8](./chapter-08-context-window-management.md) | Context Window Management | Domain 5 |
 | [Chapter 9](./chapter-09-mcp-model-context-protocol.md) | MCP — Model Context Protocol | Domain 2 |
 | [Chapter 10](./chapter-10-multi-agent-and-parallel-workflows.md) | Multi-Agent & Parallel Workflows | Domain 1, 2 |
-| Chapter 11 *(coming soon)* | Checkpoints & Session Recovery | Domain 3 |
-| Chapter 12 *(coming soon)* | CI/CD Automation | Domain 3 |
+| [Chapter 11](./chapter-11-checkpoints-and-session-recovery.md) | Checkpoints & Session Recovery | Domain 3 |
+| [Chapter 12](./chapter-12-cicd-automation.md) | CI/CD Automation | Domain 3 |
 
 ### Part 4 — Expert & Internal Architecture
 
 | Chapter | Topic | CCA Domains |
 |---|---|---|
-| Chapter 13 *(coming soon)* | The Claude Agent SDK | Domain 2 |
-| Chapter 14 *(coming soon)* | Security, Trust & Safety | Domain 6 |
+| [Chapter 13](./chapter-13-claude-agent-sdk.md) | The Claude Agent SDK | Domain 1, 2 |
+| [Chapter 14](./chapter-14-security-trust-and-safety.md) | Security, Trust & Safety | Domain 6 |
 | Chapter 15 *(coming soon)* | Output Quality & Verification | Domain 4 |
 | Chapter 16 *(coming soon)* | Advanced CLAUDE.md & Custom Commands | Domain 3 |
 
